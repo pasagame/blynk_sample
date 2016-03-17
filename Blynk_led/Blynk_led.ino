@@ -4,7 +4,6 @@
 #include <BlynkSimpleEsp8266.h>
 
 char auth[] = "blynkkey";
-char state = 0;
 
 WidgetLED led1(V1);
 
