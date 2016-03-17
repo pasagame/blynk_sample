@@ -3,8 +3,6 @@
 #include <EEPROM.h>
 #include <BlynkSimpleEsp8266.h>
 
-#define EEPROM_STATE_ADDRESS 128
-
 char auth[] = "blynkkey";
 char state = 0;
 
