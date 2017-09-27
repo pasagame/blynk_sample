@@ -1,0 +1,90 @@
+BLYNK_WRITE(V10)//Up to you 
+{  
+  if (uptoyou==1) {         
+    sprintf(Date, "%02d/%02d/%04d",  day(), month(), year());
+    sprintf(Time, "%02d:%02d:%02d", hour(), minute(), second());
+  
+    TimeInputParam t(param);
+  
+    terminal.print("Up to you Checked schedule at: ");
+    terminal.println(Time);
+    terminal.flush();
+    int dayadjustment = -1;  
+    if(weekday() == 1){
+      dayadjustment =  6; // needed for Sunday, Time library is day 1 and Blynk is day 7
+    }
+    if(t.isWeekdaySelected(weekday() + dayadjustment)){ //Time library starts week on Sunday, Blynk on Monday
+    terminal.println("Up to you ACTIVE today");
+    terminal.flush();
+    if (t.hasStartTime()) // Process start time
+    {
+      terminal.println(String("Start: ") + t.getStartHour() + ":" + t.getStartMinute());
+      terminal.flush();
+    }
+    if (t.hasStopTime()) // Process stop time
+    {
+      terminal.println(String("Stop : ") + t.getStopHour() + ":" + t.getStopMinute());
+      terminal.flush();
+    }
+    // Display timezone details, for information purposes only 
+    terminal.println(String("Time zone: ") + t.getTZ()); // Timezone is already added to start/stop time 
+    terminal.println("At least ONE day MUST be selected");
+    //terminal.println(String("Time zone offset: ") + t.getTZ_Offset()); // Get timezone offset (in seconds)
+    terminal.flush();
+  
+     for (int i = 1; i <= 7; i++) {  // Process weekdays (1. Mon, 2. Tue, 3. Wed, ...)
+        if (t.isWeekdaySelected(i)) {
+        terminal.println(String("Day ") + i + " is selected");
+        terminal.flush();
+        }
+      } 
+    nowseconds = ((hour() * 3600) + (minute() * 60) + second());
+    startsecondswd = (t.getStartHour() * 3600) + (t.getStartMinute() * 60);
+    //Serial.println(startsecondswd);  // used for debugging
+    if(nowseconds >= startsecondswd){    
+      terminal.print("Up to you STARTED at");
+      terminal.println(String(" ") + t.getStartHour() + ":" + t.getStartMinute());
+      terminal.flush();
+      if(nowseconds <= startsecondswd + 90){    // 90s on 60s timer ensures 1 trigger command is sent
+        digitalWrite(TestLED, HIGH); // set LED ON
+        Blynk.virtualWrite(V2, 1);
+        // code here to switch the relay ON
+      }      
+    }
+    else{
+      terminal.println("UP to you Device NOT STARTED today");
+      terminal.flush();
+         
+    }
+    stopsecondswd = (t.getStopHour() * 3600) + (t.getStopMinute() * 60);
+    //Serial.println(stopsecondswd);  // used for debugging
+    if(nowseconds >= stopsecondswd){
+      digitalWrite(TestLED, LOW); // set LED OFF
+      Blynk.virtualWrite(V2, 0);
+      terminal.print("Up to you STOPPED at");
+      terminal.println(String(" ") + t.getStopHour() + ":" + t.getStopMinute());
+      terminal.flush();
+      if(nowseconds <= stopsecondswd + 90){   // 90s on 60s timer ensures 1 trigger command is sent
+        digitalWrite(TestLED, LOW); // set LED OFF
+        Blynk.virtualWrite(V2, 0);
+        // code here to switch the relay OFF
+      }              
+    }
+    else{
+      if(nowseconds >= startsecondswd){  
+        digitalWrite(TestLED, HIGH); // set LED ON 
+        Blynk.virtualWrite(V2, 1);
+        terminal.println("Up to you is ON");
+        terminal.flush();
+       
+      }          
+    }
+  }
+  else{
+    terminal.println("Up to you INACTIVE today");
+    terminal.flush();
+    // nothing to do today, check again in 30 SECONDS time    
+  }
+  terminal.println();
+}
+}
